@@ -65,6 +65,7 @@ def get_access_token():
 
 @app.route('/')
 def home():
+    print("XXXXX")
     if 'user' not in session:
         return redirect(url_for('login'))
     access_token = get_access_token()
