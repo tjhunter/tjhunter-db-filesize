@@ -30,3 +30,4 @@ sudo yum install -y git
 # Download code
 git clone git@github.com:tjhunter/tjhunter-db-assignment.git
 
+http://ec2-54-237-9-226.compute-1.amazonaws.com
