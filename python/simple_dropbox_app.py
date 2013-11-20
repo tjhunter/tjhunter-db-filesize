@@ -5,12 +5,16 @@ An example of Dropbox App linking with Flask.
 
 import os
 import posixpath
-
+import locale
 from sqlite3 import dbapi2 as sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash, _app_ctx_stack
 
 from dropbox.client import DropboxClient, DropboxOAuth2Flow
+
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
+
 
 # configuration
 DEBUG = True
@@ -63,14 +67,19 @@ def get_access_token():
         return None
     return row[0]
 
+def get_client():
+    access_token = get_access_token()
+    client = None
+    if access_token is not None:
+        client = DropboxClient(access_token)
+    return client
+
 @app.route('/')
 def home():
-    print("XXXXX")
     if 'user' not in session:
         return redirect(url_for('login'))
     access_token = get_access_token()
     real_name = None
-    print(access_token)
     if access_token is not None:
         client = DropboxClient(access_token)
         account_info = client.account_info()
@@ -148,6 +157,24 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('home'))
 
+@app.route('/view/<uid>/<path:pathname>')
+def get_route(uid, pathname):
+  client  = get_client()
+  formatted_path_name = pathname
+  resp = client.metadata(formatted_path_name)
+  logging.debug(resp)
+  if 'contents' in resp:
+      for f in resp['contents']:
+          name = os.path.basename(f['path'])
+          encoding = locale.getdefaultlocale()[1]
+          logging.debug("path: %r",name)
+  flash("You want to see %r, %r"%(uid, pathname))
+  return render_template('index.html', real_name="")
+
+@app.route('/view/<uid>')
+@app.route('/view/<uid>/')
+def get_route_root(uid):
+  return get_route(uid, u'')
 
 def main():
     init_db()
