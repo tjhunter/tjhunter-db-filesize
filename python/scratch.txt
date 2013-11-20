@@ -7,3 +7,26 @@ Copy delta = add delta:
 Move = remove+add
 {u'has_more': False, u'cursor': u'AAEzoZZse1h8BNChWk5O_ZEJVLb_kWcBDkTqu6Vl47p1zOQapf4MFt2di8uMTFSxEkpUTBHwRJQMMc4nh_E99ZzQB0IYWogT1om8p_eTrJehNu6s7nA5q-775tJT41WhqRC3-S_qQtsfokA9SonlKrNz', u'reset': False, u'entries': [[u'/top secret.txt', None], [u'/secret.txt', {u'size': u'188 bytes', u'rev': u'3b1fb527002698ba', u'thumb_exists': False, u'bytes': 188, u'modified': u'Wed, 20 Nov 2013 10:27:14 +0000', u'mime_type': u'text/plain', u'path': u'/secret.txt', u'is_dir': False, u'icon': u'page_white_text', u'root': u'dropbox', u'client_mtime': u'Wed, 01 Jul 2009 04:51:03 +0000', u'revision': 991933735}]]}
 
+Connection
+===========
+
+ssh -i ~/.ssh/radlab_mm_tjhunter.pem ec2-user@ec2-54-237-9-226.compute-1.amazonaws.com
+
+https://github.com/d5/docs/wiki/Installing-Flask-on-Amazon-EC2
+
+sudo su
+yum install -y gcc-c++
+yum install -y libxml2-python libxml2-devel
+yum install -y python-devel
+easy_install uwsgi
+easy_install Flask
+easy_install pip
+pip install dropbox
+sudo yum install -y git
+
+# Set up github credentials
+...
+
+# Download code
+git clone git@github.com:tjhunter/tjhunter-db-assignment.git
+
