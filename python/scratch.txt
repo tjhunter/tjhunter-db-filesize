@@ -1,0 +1,9 @@
+Remove delta:
+{u'has_more': False, u'cursor': u'AAGOBmYJhL66qsWWdOLHlPO2cUvOMg3QQJuTvLBUw9JpqJxoIHF9Fn4tSKsrtOka4OnuVOyHtG37zuISPnyKoP5adI6lpR7EvW21lJiERdT-3ExjjQRl-V1qEXJkzdCxS5_ZmqYtFwBfGv9l2I5KyYIr', u'reset': False, u'entries': [[u'/this is your dropbox.txt', None]]}
+
+Copy delta = add delta:
+{u'has_more': False, u'cursor': u'AAE4swK8ZXpvw9unQIOUJLHSj5FPsQO44-UGna_bQeO0N7ooicwlMm_mza-0pxK-T_4sdbYEyLBleqFQk6g-HzsFadJi83TXNWgmMqgUlNv8JsyhCduveqpNKKBw3rikPUMdwWNmMnXzIxXjJ0zYMcgO', u'reset': False, u'entries': [[u'/top secret.txt', {u'size': u'188 bytes', u'rev': u'3b1fb525002698ba', u'thumb_exists': False, u'bytes': 188, u'modified': u'Wed, 20 Nov 2013 10:26:22 +0000', u'mime_type': u'text/plain', u'path': u'/Top Secret.txt', u'is_dir': False, u'icon': u'page_white_text', u'root': u'dropbox', u'client_mtime': u'Wed, 01 Jul 2009 04:51:03 +0000', u'revision': 991933733}]]}
+
+Move = remove+add
+{u'has_more': False, u'cursor': u'AAEzoZZse1h8BNChWk5O_ZEJVLb_kWcBDkTqu6Vl47p1zOQapf4MFt2di8uMTFSxEkpUTBHwRJQMMc4nh_E99ZzQB0IYWogT1om8p_eTrJehNu6s7nA5q-775tJT41WhqRC3-S_qQtsfokA9SonlKrNz', u'reset': False, u'entries': [[u'/top secret.txt', None], [u'/secret.txt', {u'size': u'188 bytes', u'rev': u'3b1fb527002698ba', u'thumb_exists': False, u'bytes': 188, u'modified': u'Wed, 20 Nov 2013 10:27:14 +0000', u'mime_type': u'text/plain', u'path': u'/secret.txt', u'is_dir': False, u'icon': u'page_white_text', u'root': u'dropbox', u'client_mtime': u'Wed, 01 Jul 2009 04:51:03 +0000', u'revision': 991933735}]]}
+
