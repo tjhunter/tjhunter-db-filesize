@@ -85,9 +85,12 @@ $("div.progressbar").each(function() {
 
     <div class=metanav>
         {% if not session.user %}
-        <a href="{{ url_for('login') }}">log in</a>
+        <a href="{{ url_for('login') }}">Log in</a>
         {% else %}
-        <a href="{{ url_for('logout') }}">log out</a>
+        <a href="{{ url_for('logout') }}">Log out</a>
+        {% endif %}
+        {% if real_name %}
+        <a href="{{ url_for('dropbox_unlink') }} " method="post">Unlink</a>
         {% endif %}
     </div>
     {% for message in get_flashed_messages() %}

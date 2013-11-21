@@ -121,11 +121,16 @@ def home():
     return redirect(url_for('login'))
   access_token = get_access_token()
   real_name = None
+  uid = None
   if access_token is not None:
     client = DropboxClient(access_token)
     account_info = client.account_info()
     real_name = account_info["display_name"]
-  return render_template('index.html', real_name=real_name)
+    uid = str(client.account_info()['uid'])
+  if real_name is None:
+    return render_template('index.html', real_name=real_name)
+  else:
+    redirect(url_for('get_route_root',uid=uid))
 
 
 @app.route('/dropbox-auth-finish')

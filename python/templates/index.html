@@ -4,6 +4,7 @@
     <p>Welcome {{ real_name }}!
     <p><a href="{{ url_for('dropbox_unlink') }} " method="post">Unlink</a>
   {% else %}
+    <p>You must link the application before using it.</p>
     <a href="{{ url_for('dropbox_auth_start') }}">Link</a>
   {% endif %}  
 {% endblock %}

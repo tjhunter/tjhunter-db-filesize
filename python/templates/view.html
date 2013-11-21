@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block body %}
 <p>Displaying the contents of {{dir_name}}
-    {% if dir_content %}
+{% if dir_content %}
 <table id="dirs_table" class="tablesorter">
     <thead>
-    <th>Dropbox</th>
-    <th>Name</th>
-    <th>Size</th>
+        <th>Dropbox</th>
+        <th>Name</th>
+        <th>Size</th>
     </thead>
     <tbody>
     {% for elt in dir_content %}
@@ -22,7 +22,7 @@
         <td sortsize="{{elt.size}}">
             <div class="progressbar" value="{{elt.normalizedsize}}">
                 <div id="label">{{elt.display_size}}</div>
-             </div>
+            </div>
         </td>
     </tr>
     {% endfor %}
