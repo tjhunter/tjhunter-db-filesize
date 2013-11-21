@@ -242,7 +242,7 @@ def get_route(uid, pathname):
       db_link = u"http://www.dropbox.com/home%s" % full_path
       logging.debug("path: %r", name)
       data.append({'path': name,
-                   'size': abs(size),
+                   'size': -abs(size),
                    'is_dir': is_dir,
                    'inner_link': inner_link,
                    'db_link': db_link,
