@@ -18,6 +18,10 @@ from utils import pretty_print_size
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
 
+from OpenSSL import SSL
+context = SSL.Context(SSL.SSLv23_METHOD)
+context.use_privatekey_file('ssl.key')
+context.use_certificate_file('ssl.cert')
 
 # configuration
 DEBUG = True
@@ -192,9 +196,9 @@ def logout():
 def get_route(uid, pathname):
   logging.debug(pathname)
   client = get_client()
-  logging.debug("Running delta update")
   users = get_users_store()
   files = get_files_store()
+  logging.debug("Running delta update")
   run_update(client, str(uid), users, files)
   logging.debug("Done with delta update")
   formatted_path_name = pathname
@@ -246,7 +250,7 @@ def get_route_root(uid):
 def main():
   init_db()
   #app.run()
-  app.run(host='0.0.0.0')
+  app.run(host='0.0.0.0',debug = True, ssl_context=context)
 
 
 if __name__ == '__main__':
