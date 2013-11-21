@@ -18,11 +18,13 @@ sudo su
 yum install -y gcc-c++
 yum install -y libxml2-python libxml2-devel
 yum install -y python-devel
+yum install -y openssl-devel
+sudo yum install -y git
 easy_install uwsgi
 easy_install Flask
 easy_install pip
 pip install dropbox
-sudo yum install -y git
+pip install pyopenssl
 
 # Set up github credentials
 ...

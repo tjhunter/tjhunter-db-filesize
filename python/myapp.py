@@ -1,5 +1,5 @@
 __author__ = 'tjhunter'
-from collections import  namedtuple, OrderedDict
+from collections import  namedtuple
 import shelve
 import logging
 import dropbox
