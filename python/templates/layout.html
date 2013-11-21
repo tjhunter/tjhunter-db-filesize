@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>Dropbox Example</title>
+    <title>Dropbox file size view</title>
     <link href="{{ url_for('static', filename='favicon.ico') }}" rel="icon" type="image/x-icon"/>
     <!-- jQuery -->
     <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
@@ -23,6 +23,10 @@
     <!--Progress bar-->
     <script src="{{ url_for('static', filename='jquery-ui.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='jquery-ui.css') }}" />
+
+    <script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
 
     <script id="js">$(function() {
 
@@ -77,11 +81,55 @@ $("div.progressbar").each(function() {
 
 
     </script>
+
+    <script>
+        // The Update mechanism for the AJAX implementation.
+        updateFunction = function(uid, pathname) {
+          $("#status").text("Refreshing...");
+          $.getJSON($SCRIPT_ROOT + '/api/data_path', {
+            uid: uid,
+            pathname: pathname
+          }, function(data) {
+            $("#status").text("Displaying the content of "+data.dir_name);
+            $("#result").text(data.dir_name);
+            var table = $('<table></table>').addClass('tablesorter');
+            //$("#dirs_table_body").children().remove();
+            $(data.dir_content).each(function(index, element) {
+              var elt = element;
+              var c1 = '<a href="' + element.db_link + '">Link</a>';
+              var c2 = '';
+              if (element.is_dir == true) {
+                c2 = '<b><a href="'+element.inner_link+'">'+
+                  element.path+'</a></b>';
+              } else {
+                c2 = element.path;
+              }
+              var c3 = '<td sortsize="'+elt.size+'"><div class="progressbar" value="'+
+              elt.normalizedsize+'"><div id="label">'+elt.display_size+
+              '</div></div></td>';
+
+              var row = "<tr>"+
+              "<td>" + c1 +"</td>"+
+              "<td>" + c2 +"</td>"+
+              c3+
+              "</tr>";
+
+              //table.append(row);
+
+              $("#dirs_table_body").append(row);
+            });
+            //$("#dirs_div").append(table);
+            $("#dirs_table").tablesorter();
+            //$("#dirs_table").update();
+          });
+
+        }
+    </script>
 </head>
 <body>
 
 <div class=page>
-    <h1>Dropbox Example</h1>
+    <h1>Dropbox file size view</h1>
 
     <div class=metanav>
         {% if not session.user %}

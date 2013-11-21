@@ -8,7 +8,7 @@ import posixpath
 import locale
 from sqlite3 import dbapi2 as sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-  render_template, flash, _app_ctx_stack
+  render_template, flash, _app_ctx_stack, jsonify
 
 from dropbox.client import DropboxClient, DropboxOAuth2Flow
 
@@ -261,6 +261,68 @@ def get_route(uid, pathname):
                          back_link=back_link,
                          refresh_link=url_for('get_route', uid=uid, pathname=pathname))
 
+
+@app.route('/view2/<uid>/<path:pathname>')
+def get_route2(uid, pathname):
+  logging.debug(pathname)
+  return render_template('view_ajax.html',
+                         uid=uid, pathname=pathname)
+
+
+# Horrible copy/paste from the previous method, should be cleaned up
+@app.route('/api/data_path')
+def get_data_path():
+  logging.debug("Processing request with arguments %r",request.args)
+  uid = request.args.get('uid')
+  pathname = request.args.get('pathname')
+  logging.debug("Data for %r",pathname)
+  client = get_client()
+  users = get_users_store()
+  files = get_files_store()
+  logging.debug("Running delta update")
+  run_update(client, str(uid), users, files)
+  logging.debug("Done with delta update")
+  formatted_path_name = pathname
+  resp = client.metadata(formatted_path_name)
+  logging.debug(resp)
+  data = []
+  if 'contents' in resp:
+    for f in resp['contents']:
+      logging.debug(f)
+      name = os.path.basename(f['path'])
+      full_path = (u"/%s/%s" % (pathname, name)).replace("//", '/')
+      logging.debug("Full path: %r, pathname: %r, name: %r", full_path, pathname, name)
+      key = path_key(uid, full_path.lower().split("/"))
+      size = 0
+      if key in files:
+        size = files[key]
+      else:
+        logging.warning("Could not find key %r in files", key)
+      display_size = pretty_print_size(abs(size))
+      is_dir = f['is_dir']
+      # Need to remove an extra "/" prefix
+      inner_link = url_for('get_route', uid=uid, pathname=full_path[1:]) if is_dir else ""
+      db_link = u"http://www.dropbox.com/home%s" % full_path
+      logging.debug("path: %r", name)
+      data.append({'path': name,
+                   'size': -abs(size),
+                   'is_dir': is_dir,
+                   'inner_link': inner_link,
+                   'db_link': db_link,
+                   'display_size': display_size})
+  # Compute the normalized values
+  sum_sizes = sum(elt['size'] for elt in data)
+  for elt in data:
+    elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
+  #flash("You want to see %r, %r" % (uid, pathname))
+  display_path = formatted_path_name or "home directory"
+  back_link = url_for('get_route', uid=uid, pathname="/".join(pathname.split('/')[:-1])) if formatted_path_name else None
+  logging.debug(data)
+  return_data = dict(dir_name=display_path,
+                         dir_content=data,
+                         back_link=back_link,
+                         refresh_link=url_for('get_route', uid=uid, pathname=pathname))
+  return jsonify(return_data)
 
 @app.route('/view/<uid>')
 @app.route('/view/<uid>/')

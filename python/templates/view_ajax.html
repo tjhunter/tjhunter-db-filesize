@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+{% block body %}
+<!--<script type=text/javascript>-->
+  <!--$(function() {-->
+    <!--$('a#calculate').bind('click', function() {-->
+      <!--$("#status").text("Refreshing...");-->
+      <!--$.getJSON($SCRIPT_ROOT + '/api/data_path', {-->
+        <!--uid: "{{uid}}",-->
+        <!--pathname: "{{pathname}}"-->
+      <!--}, function(data) {-->
+        <!--$("#status").text("Displaying the content of "+data.dir_name);-->
+        <!--$("#result").text(data.dir_name);-->
+        <!--$("dirs_table_body").children().remove();-->
+        <!--$(data.dir_content).each(function(index, element) {-->
+          <!--var elt = element;-->
+          <!--var c1 = '<a href="' + element.db_link + '">Link</a>';-->
+          <!--var c2 = '';-->
+          <!--if (element.is_dir == true) {-->
+            <!--c2 = '<b><a href="'+element.inner_link+'">'+-->
+              <!--element.path+'</a></b>';-->
+          <!--} else {-->
+            <!--c2 = element.path;-->
+          <!--}-->
+          <!--var c3 = '<td sortsize="'+elt.size+'"><div class="progressbar" value="'+-->
+          <!--elt.normalizedsize+'"><div id="label">'+elt.display_size+-->
+          <!--'</div></div></td>';-->
+
+          <!--$("#dirs_table_body").append("<tr>"+-->
+          <!--"<td>" + c1 +"</td>"+-->
+          <!--"<td>" + c2 +"</td>"+-->
+          <!--c3+-->
+          <!--"</tr>");-->
+        <!--});-->
+      <!--});-->
+      <!--return false;-->
+    <!--});-->
+  <!--});-->
+<!--</script>-->
+
+<script>
+    $(document).ready(function() {
+      updateFunction("{{uid}}","{{pathname}}");
+    });
+
+    $('a#calculate').bind('click', function() {
+      updateFunction("{{uid}}","{{pathname}}");
+    });
+</script>
+<h1>Example</h1>
+<span id="status">Status</span>
+<div id="dirs_div"/>
+<table id="dirs_table" class="tablesorter">
+    <thead>
+        <th>Dropbox</th>
+        <th>Name</th>
+        <th>Size</th>
+    </thead>
+    <tbody id="dirs_table_body">
+    </tbody>
+</table>
+
+
+<p>   <span id=result>?</span> </p>
+<p><a href=# id=calculate>calculate server side</a>
+
+{% endblock %}
