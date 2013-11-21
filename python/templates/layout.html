@@ -19,6 +19,49 @@
     <!-- Tablesorter: optional -->
     <!--<script src="http://mottie.github.io/tablesorter/addons/pager/jquery.tablesorter.pager.js"></script>-->
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+
+    <script id="js">$(function() {
+
+  // Taken from the documentation:
+  // http://mottie.github.io/tablesorter/docs/example-parsers-advanced.html
+  $.tablesorter.addParser({
+    // set a unique id
+    id: 'data',
+    is: function(s) {
+      // return false so this parser is not auto detected
+      return false;
+    },
+    format: function(s, table, cell, cellIndex) {
+      var $cell = $(cell);
+      // I could have used $(cell).data(), then we get back an object which contains both
+      // data-lastname & data-date; but I wanted to make this demo a bit more straight-forward
+      // and easier to understand.
+
+      // first column (zero-based index) has lastname data attribute
+      if (cellIndex === 2) {
+        // returns lastname data-attribute, or cell text (s) if it doesn't exist
+        return $cell.attr('sortsize') || s;
+      }
+      // return cell text, just in case
+      return s;
+    },
+    // set type, either numeric or text
+    type: 'text'
+  });
+
+	// call the tablesorter plugin
+	$("table").tablesorter({
+	    theme : 'blue',
+		// sort on the first column and third column in ascending order
+		sortList: [[2,0]],
+	    headers: {
+          2 : { sorter: 'data' }
+        },
+	});
+	});
+
+    </script>
 </head>
 <body>
 

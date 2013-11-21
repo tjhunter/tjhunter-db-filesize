@@ -2,7 +2,7 @@
 {% block body %}
   <p>Displaying the contents of {{dir_name}}
   {% if dir_content %}
-      <table id="dirs">
+      <table id="dirs_table" class="tablesorter">
         <thead>
           <th>Dropbox</th>
           <th>Name</th>
@@ -19,7 +19,7 @@
                     {{elt.path}}
                   {% endif %}
               </td>
-              <td>{{elt.display_size}}</td>
+              <td sortsize="{{elt.size}}">{{elt.display_size}}</td>
             </tr>
           {% endfor %}
         </tbody>
