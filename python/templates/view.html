@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
-<p>Displaying the contents of {{dir_name}}
+<p>
+{% if back_link %}
+<a id="backbutton" href="{{back_link}}">Back</a>
+{% endif %}
+<a id="refreshbuton" href="{{refresh_link}}">Refresh</a>
+Displaying the contents of {{dir_name}}</p>
 {% if dir_content %}
 <table id="dirs_table" class="tablesorter">
     <thead>

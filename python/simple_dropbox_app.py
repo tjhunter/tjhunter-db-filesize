@@ -130,7 +130,7 @@ def home():
   if real_name is None:
     return render_template('index.html', real_name=real_name)
   else:
-    redirect(url_for('get_route_root',uid=uid))
+    return redirect(url_for('get_route_root',uid=uid))
 
 
 @app.route('/dropbox-auth-finish')
@@ -251,11 +251,15 @@ def get_route(uid, pathname):
   sum_sizes = sum(elt['size'] for elt in data)
   for elt in data:
     elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
-  flash("You want to see %r, %r" % (uid, pathname))
+  #flash("You want to see %r, %r" % (uid, pathname))
   display_path = formatted_path_name or "home directory"
+  back_link = url_for('get_route', uid=uid, pathname="/".join(pathname.split('/')[:-1])) if formatted_path_name else None
   logging.debug(data)
-  return render_template('view.html', dir_name=display_path,
-                         dir_content=data)
+  return render_template('view.html',
+                         dir_name=display_path,
+                         dir_content=data,
+                         back_link=back_link,
+                         refresh_link=url_for('get_route', uid=uid, pathname=pathname))
 
 
 @app.route('/view/<uid>')
