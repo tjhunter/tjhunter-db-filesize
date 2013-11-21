@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block body %}
+  <p>Displaying the contents of {{dir_name}}
+  {% if dir_content %}
+      <table id="dirs">
+        <thead>
+          <th>Directory</th>
+          <th>Size</th>
+        </thead>
+        <tbody>
+          {% for elt in dir_content %}
+            <tr>
+              <td><a href="{{elt.db_link}}">Link</a> </td>
+              <td>
+                  {% if elt.is_dir%}
+                    <b><a href="{{elt.inner_link}}">{{elt.path}}</a></b>
+                  {% else %}
+                    {{elt.path}}
+                  {% endif %}
+              </td>
+              <td>{{elt.size}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  {% else %}
+      <p>No content to display</p>
+  {% endif %}
+{% endblock %}

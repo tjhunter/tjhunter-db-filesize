@@ -157,23 +157,37 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('home'))
 
-@app.route('/view/<uid>/<path:pathname>')
+@app.route('/<uid>/<path:pathname>')
 def get_route(uid, pathname):
+  logging.debug(pathname)
   client  = get_client()
   formatted_path_name = pathname
   resp = client.metadata(formatted_path_name)
   logging.debug(resp)
+  data = []
   if 'contents' in resp:
       for f in resp['contents']:
+          logging.debug(f)
           name = os.path.basename(f['path'])
-          encoding = locale.getdefaultlocale()[1]
+          is_dir = f['is_dir']
+          inner_link = (u"/%s/%s/%s"%(str(uid),pathname,name)) if is_dir else ""
+          db_link = u"http://www.dropbox.com/home/%s"%name
           logging.debug("path: %r",name)
+          data.append({'path':name,
+                       'size':100,
+                       'is_dir':is_dir,
+                       'inner_link':inner_link,
+                       'db_link':db_link})
   flash("You want to see %r, %r"%(uid, pathname))
-  return render_template('index.html', real_name="")
+  display_path = formatted_path_name or "home directory"
+  logging.debug(data)
+  return render_template('view.html', dir_name=display_path,
+                         dir_content=data)
 
-@app.route('/view/<uid>')
-@app.route('/view/<uid>/')
+@app.route('/<uid>')
+@app.route('/<uid>/')
 def get_route_root(uid):
+  logging.debug("Got uid %r",uid)
   return get_route(uid, u'')
 
 def main():
