@@ -63,12 +63,12 @@ class UserInfo(namedtuple("UserInfo",['uid','token', 'cursor'],verbose=True)):
 #        cursor = _property(_itemgetter(2), doc='Alias for field number 2')
 
 def get_users_shelve():
-  fname = "users"
+  fname = "instance/users"
   d = shelve.open(fname)
   return d
 
 def get_files_shelve():
-  fname = "files"
+  fname = "instance/files"
   d = shelve.open(fname)
   return d
 

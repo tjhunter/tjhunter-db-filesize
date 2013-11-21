@@ -4,7 +4,7 @@
     <title>Dropbox Example</title>
     <link href="{{ url_for('static', filename='favicon.ico') }}" rel="icon" type="image/x-icon"/>
     <!-- jQuery -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
 
     <!-- Demo stuff -->
     <!--<link rel="stylesheet" href="css/jq.css">-->
@@ -13,16 +13,16 @@
     <!--<script src="js/docs.js"></script>-->
 
     <!-- Tablesorter: required -->
-    <link rel="stylesheet" href="http://mottie.github.io/tablesorter/css/theme.blue.css">
-    <script src="http://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.blue.css') }}">
+    <script src="{{ url_for('static', filename='jquery.tablesorter.js') }}"></script>
 
     <!-- Tablesorter: optional -->
     <!--<script src="http://mottie.github.io/tablesorter/addons/pager/jquery.tablesorter.pager.js"></script>-->
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 
     <!--Progress bar-->
-    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+    <script src="{{ url_for('static', filename='jquery-ui.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='jquery-ui.css') }}" />
 
     <script id="js">$(function() {
 

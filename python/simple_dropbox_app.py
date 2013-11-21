@@ -99,6 +99,19 @@ def get_client():
   client = None
   if access_token is not None:
     client = DropboxClient(access_token)
+    uid = str(client.account_info()['uid'])
+    logging.debug("User uid is %r",uid)
+    users = get_users_store()
+    if uid not in users:
+      logging.debug("Inserting user %r", uid)
+      users[uid] = UserInfo(uid,access_token,None)
+    else:
+      old_token = users[uid].token
+      if old_token is None or old_token != access_token:
+        # Update the access token for the user.
+        new_user = users[uid]._replace(token=access_token)
+        users[uid] = new_user
+        logging.debug("Updated acces token for user %r",uid)
   return client
 
 
