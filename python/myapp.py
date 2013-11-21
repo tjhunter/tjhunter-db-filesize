@@ -1,16 +1,66 @@
 __author__ = 'tjhunter'
-from collections import  namedtuple
+from collections import  namedtuple, OrderedDict
 import shelve
 import logging
 import dropbox
 import sys
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
-def excepthook(*args):
-    logging.getLogger().error('Uncaught exception:', exc_info=args)
-sys.excepthook = excepthook
-
-class UserInfo(namedtuple("UserInfo",['uid','token', 'cursor'])):
+#def excepthook(*args):
+#    logging.getLogger().error('Uncaught exception:', exc_info=args)
+#sys.excepthook = excepthook
+#
+class UserInfo(namedtuple("UserInfo",['uid','token', 'cursor'],verbose=True)):
   pass
+
+#from operator import  itemgetter
+#_property = property
+#_tuple = tuple
+#_itemgetter = itemgetter
+#
+#
+#class UserInfo(tuple):
+#        'UserInfo(uid, token, cursor)'
+#
+#        __slots__ = ()
+#
+#        _fields = ('uid', 'token', 'cursor')
+#
+#        def __new__(_cls, uid, token, cursor):
+#            'Create new instance of UserInfo(uid, token, cursor)'
+#            return _tuple.__new__(_cls, (uid, token, cursor))
+#
+#        @classmethod
+#        def _make(cls, iterable, new=tuple.__new__, len=len):
+#            'Make a new UserInfo object from a sequence or iterable'
+#            result = new(cls, iterable)
+#            if len(result) != 3:
+#                raise TypeError('Expected 3 arguments, got %d' % len(result))
+#            return result
+#
+#        def __repr__(self):
+#            'Return a nicely formatted representation string'
+#            return 'UserInfo(uid=%r, token=%r, cursor=%r)' % self
+#
+#        def _asdict(self):
+#            'Return a new OrderedDict which maps field names to their values'
+#            return OrderedDict(zip(self._fields, self))
+#
+#        __dict__ = property(_asdict)
+#
+#        def _replace(_self, **kwds):
+#            'Return a new UserInfo object replacing specified fields with new values'
+#            result = _self._make(map(kwds.pop, ('uid', 'token', 'cursor'), _self))
+#            if kwds:
+#                raise ValueError('Got unexpected field names: %r' % kwds.keys())
+#            return result
+#
+#        def __getnewargs__(self):
+#            'Return self as a plain tuple.  Used by copy and pickle.'
+#            return tuple(self)
+#
+#        uid = _property(_itemgetter(0), doc='Alias for field number 0')
+#        token = _property(_itemgetter(1), doc='Alias for field number 1')
+#        cursor = _property(_itemgetter(2), doc='Alias for field number 2')
 
 def get_users_shelve():
   fname = "users"

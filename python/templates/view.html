@@ -4,7 +4,8 @@
   {% if dir_content %}
       <table id="dirs">
         <thead>
-          <th>Directory</th>
+          <th>Dropbox</th>
+          <th>Name</th>
           <th>Size</th>
         </thead>
         <tbody>
@@ -18,7 +19,7 @@
                     {{elt.path}}
                   {% endif %}
               </td>
-              <td>{{elt.size}}</td>
+              <td>{{elt.display_size}}</td>
             </tr>
           {% endfor %}
         </tbody>

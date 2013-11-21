@@ -13,6 +13,9 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
 from dropbox.client import DropboxClient, DropboxOAuth2Flow
 
 import logging
+from myapp import get_users_shelve, get_files_shelve, run_update, path_key,UserInfo
+from utils import pretty_print_size
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
 
 
@@ -54,8 +57,23 @@ def get_db():
         sqlite_db = sqlite3.connect(os.path.join(app.instance_path, app.config['DATABASE']))
         sqlite_db.row_factory = sqlite3.Row
         top.sqlite_db = sqlite_db
-
     return top.sqlite_db
+
+def get_users_store():
+  top = _app_ctx_stack.top
+  if not hasattr(top,'users_store'):
+    logging.debug("Opening users shelve")
+    users = get_users_shelve()
+    top.users_store = users
+  return top.users_store
+
+def get_files_store():
+  top = _app_ctx_stack.top
+  if not hasattr(top,'files_store'):
+    logging.debug("Opening files shelve")
+    files = get_files_shelve()
+    top.files_store = files
+  return top.files_store
 
 def get_access_token():
     username = session.get('user')
@@ -157,10 +175,15 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('home'))
 
-@app.route('/<uid>/<path:pathname>')
+@app.route('/view/<uid>/<path:pathname>')
 def get_route(uid, pathname):
   logging.debug(pathname)
   client  = get_client()
+  logging.debug("Running delta update")
+  users = get_users_store()
+  files = get_files_store()
+  run_update(client, str(uid), users, files)
+  logging.debug("Done with delta update")
   formatted_path_name = pathname
   resp = client.metadata(formatted_path_name)
   logging.debug(resp)
@@ -169,23 +192,34 @@ def get_route(uid, pathname):
       for f in resp['contents']:
           logging.debug(f)
           name = os.path.basename(f['path'])
+          full_path = (u"/%s/%s"%(pathname,name)).replace("//",'/')
+          logging.debug("Full path: %r, pathname: %r, name: %r", full_path, pathname, name)
+          key = path_key(uid, full_path.lower().split("/"))
+          size = 0
+          if key in files:
+            size = files[key]
+          else:
+            logging.warning("Could not find key %r in files",key)
+          display_size = pretty_print_size(abs(size))
           is_dir = f['is_dir']
-          inner_link = (u"/%s/%s/%s"%(str(uid),pathname,name)) if is_dir else ""
-          db_link = u"http://www.dropbox.com/home/%s"%name
+          # Need to remove an extra "/" prefix
+          inner_link = url_for('get_route',uid=uid,pathname=full_path[1:]) if is_dir else ""
+          db_link = u"http://www.dropbox.com/home%s"%full_path
           logging.debug("path: %r",name)
           data.append({'path':name,
-                       'size':100,
+                       'size':size,
                        'is_dir':is_dir,
                        'inner_link':inner_link,
-                       'db_link':db_link})
+                       'db_link':db_link,
+                       'display_size':display_size})
   flash("You want to see %r, %r"%(uid, pathname))
   display_path = formatted_path_name or "home directory"
   logging.debug(data)
   return render_template('view.html', dir_name=display_path,
                          dir_content=data)
 
-@app.route('/<uid>')
-@app.route('/<uid>/')
+@app.route('/view/<uid>')
+@app.route('/view/<uid>/')
 def get_route_root(uid):
   logging.debug("Got uid %r",uid)
   return get_route(uid, u'')

@@ -1,17 +1,41 @@
 <!doctype html>
-<title>Dropbox Example</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<html>
+<head>
+    <title>Dropbox Example</title>
+    <link href="{{ url_for('static', filename='favicon.ico') }}" rel="icon" type="image/x-icon"/>
+    <!-- jQuery -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+    <!-- Demo stuff -->
+    <!--<link rel="stylesheet" href="css/jq.css">-->
+    <!--<link href="css/prettify.css" rel="stylesheet">-->
+    <!--<script src="js/prettify.js"></script>-->
+    <!--<script src="js/docs.js"></script>-->
+
+    <!-- Tablesorter: required -->
+    <link rel="stylesheet" href="http://mottie.github.io/tablesorter/css/theme.blue.css">
+    <script src="http://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
+
+    <!-- Tablesorter: optional -->
+    <!--<script src="http://mottie.github.io/tablesorter/addons/pager/jquery.tablesorter.pager.js"></script>-->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
 <div class=page>
-  <h1>Dropbox Example</h1>
-  <div class=metanav>
-  {% if not session.user %}
-    <a href="{{ url_for('login') }}">log in</a>
-  {% else %}
-    <a href="{{ url_for('logout') }}">log out</a>
-  {% endif %}
-  </div>
-  {% for message in get_flashed_messages() %}
+    <h1>Dropbox Example</h1>
+
+    <div class=metanav>
+        {% if not session.user %}
+        <a href="{{ url_for('login') }}">log in</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">log out</a>
+        {% endif %}
+    </div>
+    {% for message in get_flashed_messages() %}
     <div class=flash>{{ message }}</div>
-  {% endfor %}
-  {% block body %}{% endblock %}
+    {% endfor %}
+    {% block body %}{% endblock %}
 </div>
+</body>
+</html>
