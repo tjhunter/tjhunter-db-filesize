@@ -225,6 +225,10 @@ def get_route(uid, pathname):
                    'inner_link': inner_link,
                    'db_link': db_link,
                    'display_size': display_size})
+  # Compute the normalized values
+  sum_sizes = sum(elt['size'] for elt in data)
+  for elt in data:
+    elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
   flash("You want to see %r, %r" % (uid, pathname))
   display_path = formatted_path_name or "home directory"
   logging.debug(data)
