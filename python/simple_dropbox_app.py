@@ -160,10 +160,10 @@ def dropbox_unlink():
 
 
 def get_auth_flow():
-  #redirect_uri = url_for('dropbox_auth_finish', _external=False)
-  redirect_uri = "http://localhost:5000/dropbox-auth-finish"
-  print "REDIRECT:"
-  print redirect_uri
+  redirect_uri = url_for('dropbox_auth_finish', _external=False)
+  #redirect_uri = "http://localhost:5000/dropbox-auth-finish"
+  #print "REDIRECT:"
+  #print redirect_uri
   return DropboxOAuth2Flow(DROPBOX_APP_KEY, DROPBOX_APP_SECRET, redirect_uri,
                            session, 'dropbox-auth-csrf-token')
 
