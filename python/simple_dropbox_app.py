@@ -19,6 +19,7 @@ from utils import pretty_print_size
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
 
 from OpenSSL import SSL
+
 context = SSL.Context(SSL.SSLv23_METHOD)
 context.use_privatekey_file('ssl.key')
 context.use_certificate_file('ssl.cert')
@@ -107,14 +108,14 @@ def get_client(uid):
     users = get_users_store()
     if uid not in users:
       logging.debug("Inserting user %r", uid)
-      users[uid] = UserInfo(uid,access_token,None)
+      users[uid] = UserInfo(uid, access_token, None)
     else:
       old_token = users[uid].token
       if old_token is None or old_token != access_token:
         # Update the access token for the user.
         new_user = users[uid]._replace(token=access_token)
         users[uid] = new_user
-        logging.debug("Updated acces token for user %r",uid)
+        logging.debug("Updated acces token for user %r", uid)
   return client
 
 
@@ -133,8 +134,9 @@ def home():
   if real_name is None:
     return render_template('index.html', real_name=real_name)
   else:
-    url = url_for('get_route_root',uid=uid)
-    return redirect("%s?refresh=1"%url)
+    url = url_for('get_route_root', uid=uid)
+    return redirect("%s?refresh=1" % url)
+
 
 @app.route('/dropbox-auth-finish')
 def dropbox_auth_finish():
@@ -217,6 +219,9 @@ def logout():
 def get_route(uid, pathname):
   logging.debug(pathname)
   client = get_client(str(uid))
+  if client is None:
+    flash("You are not logged in")
+    return redirect(url_for('home'))
   users = get_users_store()
   files = get_files_store()
   if 'refresh' in request.args and request.args['refresh'] == '1':
@@ -226,6 +231,39 @@ def get_route(uid, pathname):
     # Remove the refresh argument so that the users do not refresh the cache when they
     # refresh the page.
     return redirect(url_for('get_route', uid=uid, pathname=pathname))
+  dir_db_link = u"http://www.dropbox.com/home/%s" % pathname
+  formatted_path_name = pathname
+  display_path = formatted_path_name or "Home"
+  data = get_directory_content(uid, pathname, client, files, False)
+  back_link = url_for('get_route', uid=uid,
+                      pathname="/".join(pathname.split('/')[:-1])) \
+    if formatted_path_name else None
+  logging.debug(data)
+  return render_template('view.html',
+                         dir_name=display_path,
+                         dir_content=data,
+                         dir_db_link=dir_db_link,
+                         back_link=back_link,
+                         ajax_link=url_for('get_route2', uid=uid,
+                                           pathname=pathname),
+                         refresh_link=url_for('get_route', uid=uid,
+                                              pathname=pathname))
+
+
+@app.route('/view2/<uid>/<path:pathname>')
+def get_route2(uid, pathname):
+  logging.debug(pathname)
+  return render_template('view_ajax.html',
+                         uid=uid, pathname=pathname)
+
+
+@app.route('/view2/<uid>')
+@app.route('/view2/<uid>/')
+def get_route2_root(uid):
+  return get_route2(uid, u'')
+
+
+def get_directory_content(uid, pathname, client, files, refresh=False):
   formatted_path_name = pathname
   resp = client.metadata(formatted_path_name)
   logging.debug("Got metadata")
@@ -236,7 +274,8 @@ def get_route(uid, pathname):
       logging.debug(f)
       name = os.path.basename(f['path'])
       full_path = (u"/%s/%s" % (pathname, name)).replace("//", '/')
-      logging.debug("Full path: %r, pathname: %r, name: %r", full_path, pathname, name)
+      logging.debug("Full path: %r, pathname: %r, name: %r",
+                    full_path, pathname, name)
       key = path_key(uid, full_path.lower().split("/"))
       size = 0
       if key in files:
@@ -246,53 +285,32 @@ def get_route(uid, pathname):
       display_size = pretty_print_size(abs(size))
       is_dir = f['is_dir']
       # Need to remove an extra "/" prefix
-      inner_link = url_for('get_route', uid=uid, pathname=full_path[1:]) if is_dir else ""
+      inner_link = url_for('get_route', uid=uid, pathname=full_path[1:]) \
+        if is_dir else ""
       db_link = u"http://www.dropbox.com/home%s" % full_path
       logging.debug("path: %r", name)
       data.append({'path': name,
                    'size': abs(size),
-                   'sort_size':-abs(size),
+                   'sort_size': -abs(size),
                    'is_dir': is_dir,
                    'inner_link': inner_link,
                    'db_link': db_link,
                    'display_size': display_size})
-  # Compute the normalized values
+    # Compute the normalized values
   # Moke sure there it is > 0
   sum_sizes = sum(elt['size'] for elt in data) + 1
   for elt in data:
-    elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
-  dir_db_link = u"http://www.dropbox.com/home/%s" % pathname
-  display_path = formatted_path_name or "home directory"
-  back_link = url_for('get_route', uid=uid, pathname="/".join(pathname.split('/')[:-1])) if formatted_path_name else None
-  logging.debug(data)
-  return render_template('view.html',
-                         dir_name=display_path,
-                         dir_content=data,
-                         dir_db_link=dir_db_link,
-                         back_link=back_link,
-                         ajax_link=url_for('get_route2', uid=uid, pathname=pathname),
-                         refresh_link=url_for('get_route', uid=uid, pathname=pathname))
-
-
-@app.route('/view2/<uid>/<path:pathname>')
-def get_route2(uid, pathname):
-  logging.debug(pathname)
-  return render_template('view_ajax.html',
-                         uid=uid, pathname=pathname)
-
-@app.route('/view2/<uid>')
-@app.route('/view2/<uid>/')
-def get_route2_root(uid):
-  return get_route2(uid, u'')
+    elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes) + 1, 100)
+  return data
 
 
 # Horrible copy/paste from the previous method, should be cleaned up
 @app.route('/api/data_path')
 def get_data_path():
-  logging.debug("Processing request with arguments %r",request.args)
+  logging.debug("Processing request with arguments %r", request.args)
   uid = str(request.args.get('uid'))
   pathname = request.args.get('pathname')
-  logging.debug("Data for %r",pathname)
+  logging.debug("Data for %r", pathname)
   client = get_client(uid)
   users = get_users_store()
   files = get_files_store()
@@ -300,48 +318,20 @@ def get_data_path():
   run_update(client, str(uid), users, files)
   logging.debug("Done with delta update")
   formatted_path_name = pathname
-  resp = client.metadata(formatted_path_name)
-  logging.debug(resp)
-  data = []
-  if 'contents' in resp:
-    for f in resp['contents']:
-      logging.debug(f)
-      name = os.path.basename(f['path'])
-      full_path = (u"/%s/%s" % (pathname, name)).replace("//", '/')
-      logging.debug("Full path: %r, pathname: %r, name: %r", full_path, pathname, name)
-      key = path_key(uid, full_path.lower().split("/"))
-      size = 0
-      if key in files:
-        size = files[key]
-      else:
-        logging.warning("Could not find key %r in files", key)
-      display_size = pretty_print_size(abs(size))
-      is_dir = f['is_dir']
-      # Need to remove an extra "/" prefix
-      inner_link = url_for('get_route', uid=uid, pathname=full_path[1:]) if is_dir else ""
-      db_link = u"http://www.dropbox.com/home%s" % full_path
-      logging.debug("path: %r", name)
-      data.append({'path': name,
-                   'size': -abs(size),
-                   'is_dir': is_dir,
-                   'inner_link': inner_link,
-                   'db_link': db_link,
-                   'display_size': display_size})
-  # Compute the normalized values
-  # Moke sure there it is > 0
-  # The size may be negative because it is also used for ordering
-  sum_sizes = sum(abs(elt['size']) for elt in data) + 1
-  for elt in data:
-    elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
-  #flash("You want to see %r, %r" % (uid, pathname))
+
   display_path = formatted_path_name or "home directory"
-  back_link = url_for('get_route', uid=uid, pathname="/".join(pathname.split('/')[:-1])) if formatted_path_name else None
+  back_link = url_for('get_route', uid=uid,
+                      pathname="/".join(pathname.split('/')[:-1])) \
+                        if formatted_path_name else None
+  data = get_directory_content(uid, pathname, client, files, False)
   logging.debug(data)
   return_data = dict(dir_name=display_path,
-                         dir_content=data,
-                         back_link=back_link,
-                         refresh_link=url_for('get_route', uid=uid, pathname=pathname))
+                     dir_content=data,
+                     back_link=back_link,
+                     refresh_link=url_for('get_route',
+                                          uid=uid, pathname=pathname))
   return jsonify(return_data)
+
 
 @app.route('/view/<uid>')
 @app.route('/view/<uid>/')
@@ -353,7 +343,7 @@ def get_route_root(uid):
 def main():
   init_db()
   #app.run()
-  app.run(host='0.0.0.0',debug = True, ssl_context=context)
+  app.run(host='0.0.0.0', debug=True, ssl_context=context)
 
 
 if __name__ == '__main__':
