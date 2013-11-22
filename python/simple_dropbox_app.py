@@ -296,7 +296,7 @@ def get_directory_content(uid, pathname, client, files, refresh=False):
                    'inner_link': inner_link,
                    'db_link': db_link,
                    'display_size': display_size})
-    # Compute the normalized values
+  # Compute the normalized values
   # Moke sure there it is > 0
   sum_sizes = sum(elt['size'] for elt in data) + 1
   for elt in data:
@@ -304,7 +304,6 @@ def get_directory_content(uid, pathname, client, files, refresh=False):
   return data
 
 
-# Horrible copy/paste from the previous method, should be cleaned up
 @app.route('/api/data_path')
 def get_data_path():
   logging.debug("Processing request with arguments %r", request.args)

@@ -1,12 +1,24 @@
-This is a simple Flask example app that shows how to link with a user's Dropbox
-via the Python SDK.
+This is a simple server that shows the size of each directory.
 
 How to use
 ----------
 
-1. Edit the configuration in the flask_dropbox.py file. You'll need to set the
-   DROPBOX_APP_KEY and DROPBOX_APP_SECRET to the app key and app secret of your
-   Dropbox app.
+Launch an EC2 instance (AMI: default amazon linux 64-bit)
+sudo su
+yum install -y gcc-c++
+yum install -y libxml2-python libxml2-devel
+yum install -y python-devel
+yum install -y openssl-devel
+sudo yum install -y git
+easy_install uwsgi
+easy_install Flask
+easy_install pip
+pip install dropbox
+pip install pyopenssl
 
-2. Now you can run the flaskr_dropbox.py file with your python interpreter and
-   the application will greet you on http://localhost:5000/.
+Download and run the server:
+git clone git@github.com:tjhunter/tjhunter-db-assignment.git
+cd tjhunter-db-assignment
+python simple_dropbox_app
+
+The server will be running using https on port 5000.
