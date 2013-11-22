@@ -327,7 +327,8 @@ def get_data_path():
                    'display_size': display_size})
   # Compute the normalized values
   # Moke sure there it is > 0
-  sum_sizes = sum(elt['size'] for elt in data) + 1
+  # The size may be negative because it is also used for ordering
+  sum_sizes = sum(abs(elt['size']) for elt in data) + 1
   for elt in data:
     elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
   #flash("You want to see %r, %r" % (uid, pathname))
