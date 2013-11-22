@@ -127,7 +127,7 @@ $("div.progressbar").each(function() {
 
     <div class=metanav>
         {% if not session.user %}
-        <a href="{{ url_for('login') }}">Log in</a>
+        <!--<a href="{{ url_for('login') }}">Log in</a>-->
         {% else %}
         <a href="{{ url_for('logout') }}">Log out</a>
         {% endif %}

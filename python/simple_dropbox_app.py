@@ -133,8 +133,8 @@ def home():
   if real_name is None:
     return render_template('index.html', real_name=real_name)
   else:
-    return redirect(url_for('get_route_root',uid=uid))
-
+    url = url_for('get_route_root',uid=uid)
+    return redirect("%s?refresh=1"%url)
 
 @app.route('/dropbox-auth-finish')
 def dropbox_auth_finish():
@@ -250,15 +250,15 @@ def get_route(uid, pathname):
       db_link = u"http://www.dropbox.com/home%s" % full_path
       logging.debug("path: %r", name)
       data.append({'path': name,
-                   'size': -abs(size),
+                   'size': abs(size),
+                   'sort_size':-abs(size),
                    'is_dir': is_dir,
                    'inner_link': inner_link,
                    'db_link': db_link,
                    'display_size': display_size})
   # Compute the normalized values
   # Moke sure there it is > 0
-  # The size may be negative because it is also used for ordering
-  sum_sizes = sum(abs(elt['size']) for elt in data) + 1
+  sum_sizes = sum(elt['size'] for elt in data) + 1
   for elt in data:
     elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
   dir_db_link = u"http://www.dropbox.com/home/%s" % pathname
