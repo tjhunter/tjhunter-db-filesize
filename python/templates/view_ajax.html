@@ -46,12 +46,18 @@
       updateFunction("{{uid}}","{{pathname}}");
     });
 </script>
-<h1>Example</h1>
 <span id="status">Status</span>
+
+<p>
+<!--[<a id="refreshbuton" href="{{refresh_link}}?refresh=1">Refresh</a>]-->
+[<a id="db_link" href="{{dir_db_link}}"  target="DropboxTab">Dropbox</a>]
+  {{dir_name}}</p>
+
+
 <div id="dirs_div"/>
 <table id="dirs_table" class="tablesorter">
     <thead>
-        <th>Dropbox</th>
+        <th style="display: none;">Dropbox</th>
         <th>Name</th>
         <th>Size</th>
     </thead>
@@ -60,7 +66,7 @@
 </table>
 
 
-<p>   <span id=result>?</span> </p>
-<p><a href=# id=calculate>calculate server side</a>
+<!--<p>   <span id=result>?</span> </p>-->
+<!--<p><a href=# id=calculate>calculate server side</a>-->
 
 {% endblock %}

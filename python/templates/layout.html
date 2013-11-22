@@ -6,12 +6,6 @@
     <!-- jQuery -->
     <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
 
-    <!-- Demo stuff -->
-    <!--<link rel="stylesheet" href="css/jq.css">-->
-    <!--<link href="css/prettify.css" rel="stylesheet">-->
-    <!--<script src="js/prettify.js"></script>-->
-    <!--<script src="js/docs.js"></script>-->
-
     <!-- Tablesorter: required -->
     <link rel="stylesheet" href="{{ url_for('static', filename='theme.blue.css') }}">
     <script src="{{ url_for('static', filename='jquery.tablesorter.js') }}"></script>
@@ -109,7 +103,7 @@ $("div.progressbar").each(function() {
               '</div></div></td>';
 
               var row = "<tr>"+
-              "<td>" + c1 +"</td>"+
+              '<td  style="display: none;">' + c1 +"</td>"+
               "<td>" + c2 +"</td>"+
               c3+
               "</tr>";
@@ -139,6 +133,9 @@ $("div.progressbar").each(function() {
         {% endif %}
         {% if real_name %}
         <a href="{{ url_for('dropbox_unlink') }} " method="post">Unlink</a>
+        {% endif %}
+        {% if ajax_link %}
+        <span id="ajax_link">[<a id="ajaxbutton" href="{{ajax_link}}">(DEV)ajax version</a>]</span>
         {% endif %}
     </div>
     {% for message in get_flashed_messages() %}

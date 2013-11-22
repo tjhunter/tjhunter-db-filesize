@@ -94,13 +94,16 @@ def get_access_token():
   return row[0]
 
 
-def get_client():
+def get_client(uid):
+  # Passing the UID improves performance by not having to query the account info.
   access_token = get_access_token()
+  logging.debug("Got access token")
   client = None
   if access_token is not None:
     client = DropboxClient(access_token)
-    uid = str(client.account_info()['uid'])
-    logging.debug("User uid is %r",uid)
+    logging.debug("Created client")
+    #uid = str(client.account_info()['uid'])
+    #logging.debug("User uid is %r",uid)
     users = get_users_store()
     if uid not in users:
       logging.debug("Inserting user %r", uid)
@@ -213,15 +216,20 @@ def logout():
 @app.route('/view/<uid>/<path:pathname>')
 def get_route(uid, pathname):
   logging.debug(pathname)
-  client = get_client()
+  client = get_client(str(uid))
   users = get_users_store()
   files = get_files_store()
-  logging.debug("Running delta update")
-  run_update(client, str(uid), users, files)
-  logging.debug("Done with delta update")
+  if 'refresh' in request.args and request.args['refresh'] == '1':
+    logging.debug("Running delta update")
+    run_update(client, str(uid), users, files)
+    logging.debug("Done with delta update")
+    # Remove the refresh argument so that the users do not refresh the cache when they
+    # refresh the page.
+    return redirect(url_for('get_route', uid=uid, pathname=pathname))
   formatted_path_name = pathname
   resp = client.metadata(formatted_path_name)
-  logging.debug(resp)
+  logging.debug("Got metadata")
+  #logging.debug(resp)
   data = []
   if 'contents' in resp:
     for f in resp['contents']:
@@ -251,14 +259,16 @@ def get_route(uid, pathname):
   sum_sizes = sum(elt['size'] for elt in data)
   for elt in data:
     elt['normalizedsize'] = min(int((100 * elt['size']) / sum_sizes)+1,100)
-  #flash("You want to see %r, %r" % (uid, pathname))
+  dir_db_link = u"http://www.dropbox.com/home/%s" % pathname
   display_path = formatted_path_name or "home directory"
   back_link = url_for('get_route', uid=uid, pathname="/".join(pathname.split('/')[:-1])) if formatted_path_name else None
   logging.debug(data)
   return render_template('view.html',
                          dir_name=display_path,
                          dir_content=data,
+                         dir_db_link=dir_db_link,
                          back_link=back_link,
+                         ajax_link=url_for('get_route2', uid=uid, pathname=pathname),
                          refresh_link=url_for('get_route', uid=uid, pathname=pathname))
 
 
@@ -268,15 +278,20 @@ def get_route2(uid, pathname):
   return render_template('view_ajax.html',
                          uid=uid, pathname=pathname)
 
+@app.route('/view2/<uid>')
+@app.route('/view2/<uid>/')
+def get_route2_root(uid):
+  return get_route2(uid, u'')
+
 
 # Horrible copy/paste from the previous method, should be cleaned up
 @app.route('/api/data_path')
 def get_data_path():
   logging.debug("Processing request with arguments %r",request.args)
-  uid = request.args.get('uid')
+  uid = str(request.args.get('uid'))
   pathname = request.args.get('pathname')
   logging.debug("Data for %r",pathname)
-  client = get_client()
+  client = get_client(uid)
   users = get_users_store()
   files = get_files_store()
   logging.debug("Running delta update")
