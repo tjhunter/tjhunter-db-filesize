@@ -29,14 +29,16 @@ DEBUG = True
 DATABASE = 'myapp.db'
 SECRET_KEY = 'development key'
 
-# Fill these in!
-DROPBOX_APP_KEY = 'o7jb6lfmya9cl1a'
-DROPBOX_APP_SECRET = '5ki1fvq5r1y3tv9'
 
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+
+# Fill these in!
+DROPBOX_APP_KEY = app.config['DROPBOX_APP_KEY']
+DROPBOX_APP_SECRET = app.config['DROPBOX_APP_SECRET']
+
 
 # Ensure instance directory exists.
 try:
