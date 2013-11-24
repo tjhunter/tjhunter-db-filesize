@@ -13,13 +13,13 @@ class UserInfo(namedtuple("UserInfo", ['uid', 'token', 'cursor'], verbose=True))
 
 
 def get_users_shelve():
-  fname = "instance/users"
+  fname = "instance/users_shelve"
   d = shelve.open(fname)
   return d
 
 
 def get_files_shelve():
-  fname = "instance/files"
+  fname = "instance/files_shelve"
   d = shelve.open(fname)
   return d
 

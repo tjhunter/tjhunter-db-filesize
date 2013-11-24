@@ -126,7 +126,7 @@ $("div.progressbar").each(function() {
     <h1>Dropbox file size view</h1>
 
     <div class=metanav>
-        {% if not session.user %}
+        {% if not session.db_uid %}
         <!--<a href="{{ url_for('login') }}">Log in</a>-->
         {% else %}
         <a href="{{ url_for('logout') }}">Log out</a>

@@ -4,6 +4,7 @@ An example of Dropbox App linking with Flask.
 """
 
 import os
+import sys
 import posixpath
 import locale
 from sqlite3 import dbapi2 as sqlite3
@@ -15,6 +16,8 @@ from dropbox.client import DropboxClient, DropboxOAuth2Flow
 import logging
 from myapp import get_users_shelve, get_files_shelve, run_update, path_key, UserInfo
 from utils import pretty_print_size
+import json
+import urllib
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(module)s/%(funcName)s: %(message)s')
 
@@ -26,18 +29,31 @@ context.use_certificate_file('ssl.cert')
 
 # configuration
 DEBUG = True
-DATABASE = 'myapp.db'
-SECRET_KEY = 'development key'
-
 
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
-# Fill these in!
+# Load the secrets from a separate configuration file
+def install_secrets(filename='secrets.json'):
+  fname = os.path.join(app.instance_path, filename)
+  try:
+    data = json.load(open(fname,'r'))
+    logging.debug("Read secrets: %r",data)
+    # We need the following 3 secrets
+    app.config['SECRET_KEY'] = data['SECRET_KEY']
+    app.config['DROPBOX_APP_KEY'] = data['DROPBOX_APP_KEY']
+    app.config['DROPBOX_APP_SECRET'] = data['DROPBOX_APP_SECRET']
+  except IOError as e:
+    logging.error(e)
+    raise e
+
+logging.debug("Installing secrets")
+install_secrets()
 DROPBOX_APP_KEY = app.config['DROPBOX_APP_KEY']
 DROPBOX_APP_SECRET = app.config['DROPBOX_APP_SECRET']
+logging.debug("Installing secrets done")
 
 
 # Ensure instance directory exists.
@@ -45,28 +61,6 @@ try:
   os.makedirs(app.instance_path)
 except OSError:
   pass
-
-
-def init_db():
-  """Creates the database tables."""
-  with app.app_context():
-    db = get_db()
-    with app.open_resource("schema.sql", mode="r") as f:
-      db.cursor().executescript(f.read())
-    db.commit()
-
-
-def get_db():
-  """
-  Opens a new database connection if there is none yet for the current application context.
-  """
-  top = _app_ctx_stack.top
-  if not hasattr(top, 'sqlite_db'):
-    sqlite_db = sqlite3.connect(os.path.join(app.instance_path, app.config['DATABASE']))
-    sqlite_db.row_factory = sqlite3.Row
-    top.sqlite_db = sqlite_db
-  return top.sqlite_db
-
 
 def get_users_store():
   top = _app_ctx_stack.top
@@ -87,14 +81,7 @@ def get_files_store():
 
 
 def get_access_token():
-  username = session.get('user')
-  if username is None:
-    return None
-  db = get_db()
-  row = db.execute('SELECT access_token FROM users WHERE username = ?', [username]).fetchone()
-  if row is None:
-    return None
-  return row[0]
+  return session.get('access_token')
 
 
 def get_client(uid):
@@ -123,7 +110,7 @@ def get_client(uid):
 
 @app.route('/')
 def home():
-  if 'user' not in session:
+  if 'db_uid' not in session:
     return redirect(url_for('login'))
   access_token = get_access_token()
   real_name = None
@@ -132,7 +119,7 @@ def home():
     client = DropboxClient(access_token)
     account_info = client.account_info()
     real_name = account_info["display_name"]
-    uid = str(client.account_info()['uid'])
+    uid = str(session['db_uid'])
   if real_name is None:
     return render_template('index.html', real_name=real_name)
   else:
@@ -142,9 +129,9 @@ def home():
 
 @app.route('/dropbox-auth-finish')
 def dropbox_auth_finish():
-  username = session.get('user')
-  if username is None:
-    abort(403)
+  #username = session.get('user')
+  #if username is None:
+  #  abort(403)
   try:
     access_token, user_id, url_state = get_auth_flow().finish(request.args)
   except DropboxOAuth2Flow.BadRequestException, e:
@@ -159,29 +146,32 @@ def dropbox_auth_finish():
   except DropboxOAuth2Flow.ProviderException, e:
     app.logger.exception("Auth error" + e)
     abort(403)
-  db = get_db()
-  data = [access_token, username]
-  db.execute('UPDATE users SET access_token = ? WHERE username = ?', data)
-  db.commit()
+  # Store session information.
+  session['db_uid'] = user_id
+  session['access_token'] = access_token
+  #db = get_db()
+  #data = [access_token, username]
+  #db.execute('UPDATE users SET access_token = ? WHERE username = ?', data)
+  #db.commit()
   return redirect(url_for('home'))
 
 
 @app.route('/dropbox-auth-start')
 def dropbox_auth_start():
-  if 'user' not in session:
-    abort(403)
+  #if 'user' not in session:
+  #  abort(403)
   return redirect(get_auth_flow().start())
 
 
-@app.route('/dropbox-unlink')
-def dropbox_unlink():
-  username = session.get('user')
-  if username is None:
-    abort(403)
-  db = get_db()
-  db.execute('UPDATE users SET access_token = NULL WHERE username = ?', [username])
-  db.commit()
-  return redirect(url_for('home'))
+#@app.route('/dropbox-unlink')
+#def dropbox_unlink():
+#  #username = session.get('user')
+#  #if username is None:
+#  #  abort(403)
+#  #db = get_db()
+#  #db.execute('UPDATE users SET access_token = NULL WHERE username = ?', [username])
+#  #db.commit()
+#  return redirect(url_for('home'))
 
 
 def get_auth_flow():
@@ -197,23 +187,30 @@ def get_auth_flow():
 def login():
   error = None
   if request.method == 'POST':
-    username = request.form['username']
-    if username:
-      db = get_db()
-      db.execute('INSERT OR IGNORE INTO users (username) VALUES (?)', [username])
-      db.commit()
-      session['user'] = username
-      flash('You were logged in')
-      return redirect(url_for('home'))
-    else:
-      flash("You must provide a username")
+    logging.debug(request.form)
+    rememberme = request.form.get('remember')
+    logging.debug("Remember: %r", rememberme)
+    if rememberme == u'yes':
+      logging.debug("Remembering user")
+      session.permanent = True
+    return redirect(get_auth_flow().start())
   return render_template('login.html', error=error)
 
 
 @app.route('/logout')
 def logout():
-  session.pop('user', None)
-  flash('You were logged out')
+  # Also disconnecting from dropbox.
+  # As a side effect of the authentification procedure, the user is logged into
+  # dropbox, and there is no way to check if the user was already logged in before.
+  # (This could be done by trying to open a page on dropbox, but this is very hacky).
+  # Safer to the log the user out.
+  # Problem: it will conflict with long-running operations on the website like large uploading.
+  # Not sure what the least bad solution is, erring on the security side.
+  session.pop('db_uid', None)
+  session.pop('access_token', None)
+  flash('You were logged out. You were also logged out of Dropbox.com for security reasons.')
+  lo_page = urllib.urlopen("https://www.dropbox.com/logout")
+  _ = lo_page.readlines()
   return redirect(url_for('home'))
 
 
@@ -269,7 +266,6 @@ def get_directory_content(uid, pathname, client, files, refresh=False):
   formatted_path_name = pathname
   resp = client.metadata(formatted_path_name)
   logging.debug("Got metadata")
-  #logging.debug(resp)
   data = []
   if 'contents' in resp:
     for f in resp['contents']:
@@ -342,8 +338,6 @@ def get_route_root(uid):
 
 
 def main():
-  init_db()
-  #app.run()
   app.run(host='0.0.0.0', debug=True, ssl_context=context)
 
 
